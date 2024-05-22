@@ -1,0 +1,30 @@
+{% extends "base.html" %} {% block title %}{{ product.name }} Reviews{% endblock
+%} {% block content %}
+<div class="container mt-5">
+  <h2>Reviews for {{ product.name }}</h2>
+  {% if reviews %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Rating</th>
+        <th>Review</th>
+        <th>User</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for review in reviews %}
+      <tr>
+        <td>{{ review.rating }}</td>
+        <td>{{ review.review }}</td>
+        <td>{{ review.username }}</td>
+        <td>{{ review.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No reviews for this product.</p>
+  {% endif %}
+</div>
+{% endblock %}

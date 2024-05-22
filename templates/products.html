@@ -43,6 +43,7 @@ content %}
         <th>Category</th>
         <th>Price</th>
         <th>Stock Quantity</th>
+        <th>Average Rating</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -55,6 +56,7 @@ content %}
         <td class="product-category">{{ product.category }}</td>
         <td>{{ product.price }}</td>
         <td>{{ product.stock_quantity }}</td>
+        <td>{{ product.average_rating }}</td>
         <td>
           {% if role == 'Admin' or role == 'Pharmacist' %}
           <a
@@ -80,6 +82,11 @@ content %}
             </button>
           </form>
           {% endif %}
+          <a
+            href="{{ url_for('view_reviews', product_id=product.id) }}"
+            class="btn btn-info btn-sm"
+            >View Reviews</a
+          >
         </td>
       </tr>
       {% endfor %}

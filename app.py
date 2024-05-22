@@ -150,6 +150,47 @@ def reset_password():
 
     return render_template('reset_password.html')
 
+@app.route('/edit_account', methods=['GET', 'POST'])
+@role_required('Customer')
+def edit_account():
+    user_id = session['user_id']
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        date_of_birth = request.form['date_of_birth']
+        gender = request.form['gender']
+        phone_number = request.form['phone_number']
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        
+        if password:
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            cursor.execute("""
+                UPDATE users 
+                SET first_name = %s, last_name = %s, date_of_birth = %s, gender = %s, phone_number = %s, username = %s, email = %s, password = %s 
+                WHERE id = %s
+            """, (first_name, last_name, date_of_birth, gender, phone_number, username, email, hashed_password, user_id))
+        else:
+            cursor.execute("""
+                UPDATE users 
+                SET first_name = %s, last_name = %s, date_of_birth = %s, gender = %s, phone_number = %s, username = %s, email = %s 
+                WHERE id = %s
+            """, (first_name, last_name, date_of_birth, gender, phone_number, username, email, user_id))
+        
+        conn.commit()
+        flash('Account updated successfully.', 'success')
+        return redirect(url_for('customer_dashboard'))
+    
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    return render_template('edit_account.html', user=user)
 
 
 @app.route('/admin')
@@ -170,24 +211,107 @@ def customer_dashboard():
 # Import MySQL connector
 import mysql.connector
 
+@app.route('/manage_users')
+@role_required('Admin')
+def manage_users():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    cursor.execute("""
+        SELECT id, first_name, last_name, date_of_birth, gender, phone_number, username, email, role 
+        FROM users
+    """)
+    users = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    
+    return render_template('manage_users.html', users=users)
+
+@app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@role_required('Admin')
+def edit_user(user_id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    if request.method == 'POST':
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        date_of_birth = request.form['date_of_birth']
+        gender = request.form['gender']
+        phone_number = request.form['phone_number']
+        username = request.form['username']
+        email = request.form['email']
+        role = request.form['role']
+        
+        cursor.execute("""
+            UPDATE users 
+            SET first_name = %s, last_name = %s, date_of_birth = %s, gender = %s, phone_number = %s, username = %s, email = %s, role = %s
+            WHERE id = %s
+        """, (first_name, last_name, date_of_birth, gender, phone_number, username, email, role, user_id))
+        
+        conn.commit()
+        flash('User updated successfully.', 'success')
+        return redirect(url_for('manage_users'))
+    
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    return render_template('edit_user.html', user=user)
+
+
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+@role_required('Admin')
+def delete_user(user_id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+        flash('User deleted successfully.', 'success')
+    except mysql.connector.Error as err:
+        conn.rollback()
+        print(err)
+        flash('Failed to delete user.', 'danger')
+    finally:
+        cursor.close()
+        conn.close()
+    
+    return redirect(url_for('manage_users'))
+
+
+
 # Add the new routes for product management
 
 @app.route('/products')
 def view_products():
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor(dictionary=True)
+    
     cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()
 
     cursor.execute("SELECT DISTINCT category FROM products")
     categories = cursor.fetchall()
-
     categories = [category['category'] for category in categories]
+
+    for product in products:
+        cursor.execute("""
+            SELECT AVG(rating) as average_rating 
+            FROM reviews 
+            WHERE product_id = %s
+        """, (product['id'],))
+        result = cursor.fetchone()
+        product['average_rating'] = result['average_rating'] if result['average_rating'] else 'No ratings'
 
     cursor.close()
     conn.close()
     role = session.get('role')
     return render_template('products.html', products=products, role=role, categories=categories)
+
 
 # Add and Edit Product Routes
 @app.route('/products/add', methods=['GET', 'POST'])
@@ -389,7 +513,7 @@ def view_order_history():
 
         for order in orders:
             cursor.execute("""
-                SELECT p.name, p.description, p.category, oi.quantity, oi.price 
+                SELECT p.id as product_id, p.name, p.description, p.category, oi.quantity, oi.price 
                 FROM OrderItems oi 
                 JOIN products p ON oi.product_id = p.id 
                 WHERE oi.order_id = %s
@@ -408,6 +532,7 @@ def view_order_history():
     finally:
         cursor.close()
         conn.close()
+
 
 @app.route('/manage_orders')
 @role_required('Admin')
@@ -522,6 +647,57 @@ def inventory_report():
         cursor.close()
         conn.close()
 
+@app.route('/submit_review/<int:product_id>', methods=['GET', 'POST'])
+@role_required('Customer')
+def submit_review(product_id):
+    user_id = session['user_id']
+    
+    if request.method == 'POST':
+        rating = request.form['rating']
+        review = request.form['review']
+        
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute("""
+                INSERT INTO reviews (user_id, product_id, rating, review) 
+                VALUES (%s, %s, %s, %s)
+            """, (user_id, product_id, rating, review))
+            conn.commit()
+            flash('Review submitted successfully.', 'success')
+            return redirect(url_for('view_order_history'))
+        except mysql.connector.Error as err:
+            print(err)
+            flash('Failed to submit review.', 'danger')
+        finally:
+            cursor.close()
+            conn.close()
+    
+    return render_template('submit_review.html', product_id=product_id)
+
+
+@app.route('/view_reviews/<int:product_id>')
+def view_reviews(product_id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    cursor.execute("""
+        SELECT r.rating, r.review, r.created_at, u.username 
+        FROM reviews r 
+        JOIN users u ON r.user_id = u.id 
+        WHERE r.product_id = %s 
+        ORDER BY r.created_at DESC
+    """, (product_id,))
+    reviews = cursor.fetchall()
+    
+    cursor.execute("SELECT name FROM products WHERE id = %s", (product_id,))
+    product = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+    
+    return render_template('view_reviews.html', reviews=reviews, product=product)
 
 
 

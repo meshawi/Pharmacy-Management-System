@@ -20,6 +20,7 @@ content %}
             <th>Category</th>
             <th>Quantity</th>
             <th>Price</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -30,6 +31,13 @@ content %}
             <td>{{ item['category'] }}</td>
             <td>{{ item['quantity'] }}</td>
             <td>{{ item['price'] }}</td>
+            <td>
+              <a
+                href="{{ url_for('submit_review', product_id=item['product_id']) }}"
+                class="btn btn-primary btn-sm"
+                >Rate</a
+              >
+            </td>
           </tr>
           {% endfor %}
         </tbody>
