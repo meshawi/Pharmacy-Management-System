@@ -14,6 +14,7 @@ db_config = {
     'database': 'pharmacy_system'
 }
 
+
 # Define the role_required decorator
 def role_required(role):
     def wrapper(fn):
@@ -96,7 +97,7 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
-@app.route('/dashboard')
+@app.route('/')
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -151,7 +152,6 @@ def reset_password():
     return render_template('reset_password.html')
 
 @app.route('/edit_account', methods=['GET', 'POST'])
-@role_required('Customer')
 def edit_account():
     user_id = session['user_id']
     conn = mysql.connector.connect(**db_config)
