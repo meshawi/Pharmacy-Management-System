@@ -75,34 +75,30 @@ def login():
             conn.close()
     return render_template('login.html')
 
-
-
 @app.route('/logout')
 def logout():
     session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
-
-
 @app.route('/dashboard')
 def dashboard():
-    return 'Welcome to the Dashboard'
+    return render_template('dashboard.html', role=session.get('role', 'Guest'))
 
 @app.route('/admin')
 @role_required('Admin')
 def admin_dashboard():
-    return 'Welcome to the Admin Dashboard'
+    return render_template('admin_dashboard.html')
 
 @app.route('/pharmacist')
 @role_required('Pharmacist')
 def pharmacist_dashboard():
-    return 'Welcome to the Pharmacist Dashboard'
+    return render_template('pharmacist_dashboard.html')
 
 @app.route('/customer')
 @role_required('Customer')
 def customer_dashboard():
-    return 'Welcome to the Customer Dashboard'
+    return render_template('customer_dashboard.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
