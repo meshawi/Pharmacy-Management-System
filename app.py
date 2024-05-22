@@ -100,5 +100,79 @@ def pharmacist_dashboard():
 def customer_dashboard():
     return render_template('customer_dashboard.html')
 
+# Import MySQL connector
+import mysql.connector
+
+# Add the new routes for product management
+
+@app.route('/products')
+def view_products():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products")
+    products = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return render_template('products.html', products=products)
+
+@app.route('/products/add', methods=['GET', 'POST'])
+@role_required('Admin')
+def add_product():
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        price = request.form['price']
+        stock_quantity = request.form['stock_quantity']
+        
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO products (name, description, price, stock_quantity) VALUES (%s, %s, %s, %s)",
+                       (name, description, price, stock_quantity))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash('Product added successfully.', 'success')
+        return redirect(url_for('view_products'))
+    
+    return render_template('add_product.html')
+
+@app.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
+@role_required('Admin')
+def edit_product(product_id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        price = request.form['price']
+        stock_quantity = request.form['stock_quantity']
+        
+        cursor.execute("UPDATE products SET name=%s, description=%s, price=%s, stock_quantity=%s WHERE id=%s",
+                       (name, description, price, stock_quantity, product_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        flash('Product updated successfully.', 'success')
+        return redirect(url_for('view_products'))
+    
+    cursor.execute("SELECT * FROM products WHERE id = %s", (product_id,))
+    product = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return render_template('edit_product.html', product=product)
+
+@app.route('/products/delete/<int:product_id>', methods=['POST'])
+@role_required('Admin')
+def delete_product(product_id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash('Product deleted successfully.', 'success')
+    return redirect(url_for('view_products'))
+
 if __name__ == '__main__':
     app.run(debug=True)
