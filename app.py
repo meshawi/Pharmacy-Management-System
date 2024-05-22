@@ -83,7 +83,20 @@ def logout():
 
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html', role=session.get('role', 'Guest'))
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    role = session.get('role', 'Guest')
+    if role == 'Admin':
+        return redirect(url_for('admin_dashboard'))
+    elif role == 'Pharmacist':
+        return redirect(url_for('pharmacist_dashboard'))
+    elif role == 'Customer':
+        return redirect(url_for('customer_dashboard'))
+    else:
+        return render_template('apology.html', message="Invalid Role")
+
+
+
 
 @app.route('/admin')
 @role_required('Admin')
@@ -113,7 +126,8 @@ def view_products():
     products = cursor.fetchall()
     cursor.close()
     conn.close()
-    return render_template('products.html', products=products)
+    role = session.get('role')
+    return render_template('products.html', products=products, role=role)
 
 @app.route('/products/add', methods=['GET', 'POST'])
 @role_required('Admin')

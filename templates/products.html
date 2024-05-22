@@ -1,10 +1,11 @@
-{% extends "base.html" %} {% block title %}Products{% endblock %} {% block
-content %}
+{% block content %}
 <div class="container mt-5">
   <h2>Products</h2>
+  {% if role == 'Admin' or role == 'Pharmacist' %}
   <a href="{{ url_for('add_product') }}" class="btn btn-primary mb-3"
     >Add Product</a
   >
+  {% endif %}
   <table class="table table-bordered">
     <thead>
       <tr>
@@ -25,6 +26,7 @@ content %}
         <td>{{ product.price }}</td>
         <td>{{ product.stock_quantity }}</td>
         <td>
+          {% if role == 'Admin' or role == 'Pharmacist' %}
           <a
             href="{{ url_for('edit_product', product_id=product.id) }}"
             class="btn btn-warning btn-sm"
@@ -37,6 +39,17 @@ content %}
           >
             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
           </form>
+          {% elif role == 'Customer' %}
+          <form
+            action="{{ url_for('add_to_cart', product_id=product.id) }}"
+            method="POST"
+            style="display: inline"
+          >
+            <button type="submit" class="btn btn-success btn-sm">
+              Add to Cart
+            </button>
+          </form>
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
