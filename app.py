@@ -188,5 +188,124 @@ def delete_product(product_id):
     flash('Product deleted successfully.', 'success')
     return redirect(url_for('view_products'))
 
+@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
+@role_required('Customer')
+def add_to_cart(product_id):
+    if 'cart' not in session:
+        session['cart'] = []
+
+    session['cart'].append(product_id)
+    flash('Product added to cart.', 'success')
+    return redirect(url_for('view_products'))
+
+
+@app.route('/view_cart')
+def view_cart():
+    if 'cart' not in session:
+        session['cart'] = []
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    products = []
+    total_amount = 0
+    for product_id in session['cart']:
+        cursor.execute("SELECT * FROM products WHERE id = %s", (product_id,))
+        product = cursor.fetchone()
+        products.append(product)
+        total_amount += product['price']
+    cursor.close()
+    conn.close()
+    return render_template('view_cart.html', products=products, total_amount=total_amount)
+
+@app.route('/confirm_order', methods=['POST'])
+@role_required('Customer')
+def confirm_order():
+    if 'cart' not in session or not session['cart']:
+        flash('Your cart is empty.', 'warning')
+        return redirect(url_for('view_cart'))
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+
+    total_amount = 0
+    for product_id in session['cart']:
+        cursor.execute("SELECT price FROM products WHERE id = %s", (product_id,))
+        price = cursor.fetchone()[0]
+        total_amount += price
+
+    try:
+        # Start transaction
+        cursor.execute("START TRANSACTION")
+
+        # Insert order into Orders table
+        cursor.execute("INSERT INTO Orders (customer_id, total_amount) VALUES (%s, %s)",
+                       (session['user_id'], total_amount))
+        order_id = cursor.lastrowid
+
+        # Insert items into OrderItems table
+        for product_id in session['cart']:
+            cursor.execute("SELECT price FROM products WHERE id = %s", (product_id,))
+            price = cursor.fetchone()[0]
+            cursor.execute("INSERT INTO OrderItems (order_id, product_id, quantity, price) VALUES (%s, %s, %s, %s)",
+                           (order_id, product_id, 1, price))
+            cursor.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = %s", (product_id,))
+
+        # Commit transaction
+        cursor.execute("COMMIT")
+
+        session['cart'] = []  # Clear cart after successful order
+        flash('Order confirmed successfully.', 'success')
+        return redirect(url_for('view_order_history'))
+    except mysql.connector.Error as err:
+        cursor.execute("ROLLBACK")
+        print(err)
+        flash('Failed to confirm order.', 'danger')
+        return redirect(url_for('view_cart'))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/view_order_history')
+@role_required('Customer')
+def view_order_history():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("SELECT * FROM Orders WHERE customer_id = %s ORDER BY order_date DESC", (session['user_id'],))
+        orders = cursor.fetchall()
+
+        for order in orders:
+            cursor.execute("""
+                SELECT p.name, p.description, oi.quantity, oi.price 
+                FROM OrderItems oi 
+                JOIN products p ON oi.product_id = p.id 
+                WHERE oi.order_id = %s
+            """, (order['id'],))
+            items = cursor.fetchall()
+
+            # Convert Decimal to string
+            for item in items:
+                item['price'] = str(item['price'])
+            order['items'] = items
+
+            # Convert Decimal to string
+            order['total_amount'] = str(order['total_amount'])
+
+        print("Final orders data structure:", orders)
+        return render_template('view_order_history.html', orders=orders)
+    except Exception as e:
+        print(f"Error fetching order history: {e}")
+        return render_template('apology.html', message=f"Failed to fetch order history: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

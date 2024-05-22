@@ -1,4 +1,5 @@
-{% block content %}
+{% extends "base.html" %} {% block title %}Products{% endblock %} {% block
+content %}
 <div class="container mt-5">
   <h2>Products</h2>
   {% if role == 'Admin' or role == 'Pharmacist' %}

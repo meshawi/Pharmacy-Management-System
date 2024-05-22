@@ -1,0 +1,32 @@
+{% extends "base.html" %} {% block title %}View Cart{% endblock %} {% block
+content %}
+<div class="container mt-5">
+  <h2>Your Cart</h2>
+  {% if products %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>{{ product.description }}</td>
+        <td>{{ product.price }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <h3>Total Amount: ${{ total_amount }}</h3>
+  <form action="{{ url_for('confirm_order') }}" method="POST">
+    <button type="submit" class="btn btn-primary">Confirm Order</button>
+  </form>
+  {% else %}
+  <p>Your cart is empty.</p>
+  {% endif %}
+</div>
+{% endblock %}
