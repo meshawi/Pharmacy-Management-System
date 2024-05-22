@@ -302,7 +302,118 @@ def view_order_history():
         cursor.close()
         conn.close()
 
+@app.route('/manage_orders')
+@role_required('Admin')
+def manage_orders():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("SELECT * FROM Orders ORDER BY order_date DESC")
+        orders = cursor.fetchall()
 
+        for order in orders:
+            cursor.execute("""
+                SELECT p.name, p.description, oi.quantity, oi.price 
+                FROM OrderItems oi 
+                JOIN products p ON oi.product_id = p.id 
+                WHERE oi.order_id = %s
+            """, (order['id'],))
+            items = cursor.fetchall()
+
+            # Convert Decimal to string
+            for item in items:
+                item['price'] = str(item['price'])
+            order['items'] = items
+
+            # Convert Decimal to string
+            order['total_amount'] = str(order['total_amount'])
+
+        return render_template('manage_orders.html', orders=orders)
+    except Exception as e:
+        print(f"Error fetching orders for management: {e}")
+        return render_template('apology.html', message=f"Failed to fetch orders for management: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/update_order_status/<int:order_id>', methods=['POST'])
+@role_required('Admin')
+def update_order_status(order_id):
+    new_status = request.form['status']
+    
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("UPDATE Orders SET status = %s WHERE id = %s", (new_status, order_id))
+        conn.commit()
+        flash('Order status updated successfully.', 'success')
+    except Exception as e:
+        conn.rollback()
+        print(f"Error updating order status: {e}")
+        flash('Failed to update order status.', 'danger')
+    finally:
+        cursor.close()
+        conn.close()
+    
+    return redirect(url_for('manage_orders'))
+
+from flask import jsonify
+
+@app.route('/sales_report')
+@role_required('Admin')
+def sales_report():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("""
+            SELECT 
+                DATE(order_date) as order_date, 
+                SUM(total_amount) as total_sales, 
+                COUNT(id) as total_orders 
+            FROM Orders 
+            GROUP BY DATE(order_date) 
+            ORDER BY order_date DESC
+        """)
+        sales_data = cursor.fetchall()
+        return render_template('sales_report.html', sales_data=sales_data)
+    except Exception as e:
+        print(f"Error fetching sales report: {e}")
+        return render_template('apology.html', message=f"Failed to fetch sales report: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/inventory_report')
+@role_required('Admin')
+def inventory_report():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("""
+            SELECT 
+                p.id, 
+                p.name, 
+                p.description, 
+                p.price, 
+                p.stock_quantity, 
+                SUM(oi.quantity) as total_sold 
+            FROM products p
+            LEFT JOIN OrderItems oi ON p.id = oi.product_id 
+            GROUP BY p.id 
+            ORDER BY p.name
+        """)
+        inventory_data = cursor.fetchall()
+        return render_template('inventory_report.html', inventory_data=inventory_data)
+    except Exception as e:
+        print(f"Error fetching inventory report: {e}")
+        return render_template('apology.html', message=f"Failed to fetch inventory report: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
 
 

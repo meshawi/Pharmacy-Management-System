@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Manage Orders{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Manage Orders</h2>
+  {% if orders %}
+  {% for order in orders %}
+  <div class="card mb-4">
+    <div class="card-header">
+      <strong>Order ID:</strong> {{ order['id'] }} <br />
+      <strong>Order Date:</strong> {{ order['order_date'] }} <br />
+      <strong>Status:</strong> {{ order['status'] }} <br />
+      <strong>Total Amount:</strong> ${{ order['total_amount'] }}
+    </div>
+    <div class="card-body">
+      <h5>Items:</h5>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order['items'] %}
+          <tr>
+            <td>{{ item['name'] }}</td>
+            <td>{{ item['description'] }}</td>
+            <td>{{ item['quantity'] }}</td>
+            <td>{{ item['price'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <form action="{{ url_for('update_order_status', order_id=order['id']) }}" method="POST">
+        <div class="form-group">
+          <label for="status">Update Status:</label>
+          <select class="form-control" id="status" name="status">
+            <option value="Pending" {% if order['status'] == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="Processing" {% if order['status'] == 'Processing' %}selected{% endif %}>Processing</option>
+            <option value="Shipped" {% if order['status'] == 'Shipped' %}selected{% endif %}>Shipped</option>
+            <option value="Delivered" {% if order['status'] == 'Delivered' %}selected{% endif %}>Delivered</option>
+            <option value="Cancelled" {% if order['status'] == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Status</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p>No orders found.</p>
+  {% endif %}
+</div>
+{% endblock %}

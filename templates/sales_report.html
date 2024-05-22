@@ -1,0 +1,28 @@
+{% extends "base.html" %} {% block title %}Sales Report{% endblock %} {% block
+content %}
+<div class="container mt-5">
+  <h2>Sales Report</h2>
+  {% if sales_data %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Total Sales</th>
+        <th>Total Orders</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for data in sales_data %}
+      <tr>
+        <td>{{ data.order_date }}</td>
+        <td>${{ data.total_sales }}</td>
+        <td>{{ data.total_orders }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No sales data available.</p>
+  {% endif %}
+</div>
+{% endblock %}
