@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}View Cart{% endblock %} {% block
+{% extends "base.html" %} {% block title %}Your Cart{% endblock %} {% block
 content %}
 <div class="container mt-5">
   <h2>Your Cart</h2>
@@ -8,7 +8,9 @@ content %}
       <tr>
         <th>Name</th>
         <th>Description</th>
+        <th>Category</th>
         <th>Price</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -16,7 +18,17 @@ content %}
       <tr>
         <td>{{ product.name }}</td>
         <td>{{ product.description }}</td>
+        <td>{{ product.category }}</td>
         <td>{{ product.price }}</td>
+        <td>
+          <form
+            action="{{ url_for('remove_from_cart', product_id=product.id) }}"
+            method="POST"
+            style="display: inline"
+          >
+            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>

@@ -28,17 +28,31 @@ def role_required(role):
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        date_of_birth = request.form['date_of_birth']
+        gender = request.form['gender']
+        phone_number = request.form['phone_number']
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
+        terms = request.form.get('terms')
+        privacy = request.form.get('privacy')
+
+        if not terms or not privacy:
+            flash('You must agree to the terms and conditions and privacy policy.', 'danger')
+            return render_template('register.html')
+
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
         role = 'Customer'  # Default role, you can change this manually later in the database
 
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO users (username, email, password, role) VALUES (%s, %s, %s, %s)",
-                           (username, email, hashed_password, role))
+            cursor.execute("""
+                INSERT INTO users (first_name, last_name, date_of_birth, gender, phone_number, username, email, password, role) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (first_name, last_name, date_of_birth, gender, phone_number, username, email, hashed_password, role))
             conn.commit()
             flash('Registration successful. Please log in.', 'success')
             return redirect(url_for('login'))
@@ -49,6 +63,7 @@ def register():
             cursor.close()
             conn.close()
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -95,6 +110,45 @@ def dashboard():
     else:
         return render_template('apology.html', message="Invalid Role")
 
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form.get('email')
+        phone_number = request.form.get('phone_number')
+        new_password = request.form['new_password']
+        hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+
+        if not (email or phone_number):
+            flash('Please provide either email or phone number.', 'danger')
+            return render_template('reset_password.html')
+
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        try:
+            if email:
+                cursor.execute("SELECT * FROM users WHERE username = %s AND email = %s", (username, email))
+            else:
+                cursor.execute("SELECT * FROM users WHERE username = %s AND phone_number = %s", (username, phone_number))
+
+            user = cursor.fetchone()
+
+            if user:
+                cursor.execute("UPDATE users SET password = %s WHERE username = %s", (hashed_password, username))
+                conn.commit()
+                flash('Password reset successfully. Please log in with your new password.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('User not found. Please check your details and try again.', 'danger')
+        except mysql.connector.Error as err:
+            print(err)
+            flash('Failed to reset password. Please try again later.', 'danger')
+        finally:
+            cursor.close()
+            conn.close()
+
+    return render_template('reset_password.html')
 
 
 
@@ -124,11 +178,18 @@ def view_products():
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM products")
     products = cursor.fetchall()
+
+    cursor.execute("SELECT DISTINCT category FROM products")
+    categories = cursor.fetchall()
+
+    categories = [category['category'] for category in categories]
+
     cursor.close()
     conn.close()
     role = session.get('role')
-    return render_template('products.html', products=products, role=role)
+    return render_template('products.html', products=products, role=role, categories=categories)
 
+# Add and Edit Product Routes
 @app.route('/products/add', methods=['GET', 'POST'])
 @role_required('Admin')
 def add_product():
@@ -137,11 +198,12 @@ def add_product():
         description = request.form['description']
         price = request.form['price']
         stock_quantity = request.form['stock_quantity']
+        category = request.form['category']
         
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO products (name, description, price, stock_quantity) VALUES (%s, %s, %s, %s)",
-                       (name, description, price, stock_quantity))
+        cursor.execute("INSERT INTO products (name, description, price, stock_quantity, category) VALUES (%s, %s, %s, %s, %s)",
+                       (name, description, price, stock_quantity, category))
         conn.commit()
         cursor.close()
         conn.close()
@@ -161,9 +223,10 @@ def edit_product(product_id):
         description = request.form['description']
         price = request.form['price']
         stock_quantity = request.form['stock_quantity']
+        category = request.form['category']
         
-        cursor.execute("UPDATE products SET name=%s, description=%s, price=%s, stock_quantity=%s WHERE id=%s",
-                       (name, description, price, stock_quantity, product_id))
+        cursor.execute("UPDATE products SET name=%s, description=%s, price=%s, stock_quantity=%s, category=%s WHERE id=%s",
+                       (name, description, price, stock_quantity, category, product_id))
         conn.commit()
         cursor.close()
         conn.close()
@@ -181,25 +244,72 @@ def edit_product(product_id):
 def delete_product(product_id):
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    flash('Product deleted successfully.', 'success')
+
+    try:
+        # Check if the product is referenced in OrderItems
+        cursor.execute("SELECT COUNT(*) FROM OrderItems WHERE product_id = %s", (product_id,))
+        count = cursor.fetchone()[0]
+        
+        if count > 0:
+            flash('Cannot delete product because it is referenced in order items.', 'danger')
+        else:
+            cursor.execute("DELETE FROM products WHERE id = %s", (product_id,))
+            conn.commit()
+            flash('Product deleted successfully.', 'success')
+    except mysql.connector.Error as err:
+        conn.rollback()
+        print(err)
+        flash('Failed to delete product.', 'danger')
+    finally:
+        cursor.close()
+        conn.close()
+    
     return redirect(url_for('view_products'))
+
 
 @app.route('/add_to_cart/<int:product_id>', methods=['POST'])
 @role_required('Customer')
 def add_to_cart(product_id):
-    if 'cart' not in session:
-        session['cart'] = []
-
-    session['cart'].append(product_id)
-    flash('Product added to cart.', 'success')
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("SELECT stock_quantity FROM products WHERE id = %s", (product_id,))
+        product = cursor.fetchone()
+        
+        if product['stock_quantity'] < 1:
+            flash('Product is out of stock and cannot be added to the cart.', 'danger')
+        else:
+            if 'cart' not in session:
+                session['cart'] = []
+            session['cart'].append(product_id)
+            flash('Product added to cart.', 'success')
+    except mysql.connector.Error as err:
+        print(err)
+        flash('Failed to add product to cart.', 'danger')
+    finally:
+        cursor.close()
+        conn.close()
+    
     return redirect(url_for('view_products'))
 
+@app.route('/remove_from_cart/<int:product_id>', methods=['POST'])
+@role_required('Customer')
+def remove_from_cart(product_id):
+    if 'cart' in session:
+        try:
+            session['cart'].remove(product_id)
+            flash('Product removed from cart.', 'success')
+        except ValueError:
+            flash('Product not found in cart.', 'danger')
+    else:
+        flash('Cart is empty.', 'warning')
+    return redirect(url_for('view_cart'))
 
+
+# View Cart and Order History Routes
 @app.route('/view_cart')
+@role_required('Customer')
 def view_cart():
     if 'cart' not in session:
         session['cart'] = []
@@ -266,6 +376,7 @@ def confirm_order():
         conn.close()
 
 
+
 @app.route('/view_order_history')
 @role_required('Customer')
 def view_order_history():
@@ -278,22 +389,18 @@ def view_order_history():
 
         for order in orders:
             cursor.execute("""
-                SELECT p.name, p.description, oi.quantity, oi.price 
+                SELECT p.name, p.description, p.category, oi.quantity, oi.price 
                 FROM OrderItems oi 
                 JOIN products p ON oi.product_id = p.id 
                 WHERE oi.order_id = %s
             """, (order['id'],))
             items = cursor.fetchall()
 
-            # Convert Decimal to string
             for item in items:
                 item['price'] = str(item['price'])
             order['items'] = items
-
-            # Convert Decimal to string
             order['total_amount'] = str(order['total_amount'])
 
-        print("Final orders data structure:", orders)
         return render_template('view_order_history.html', orders=orders)
     except Exception as e:
         print(f"Error fetching order history: {e}")
