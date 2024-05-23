@@ -1,6 +1,8 @@
 # Pharmacy Management System
 
-#### Video Demo: [URL HERE]
+![CS50 Project](/thum.png "CS50 Final Project Image")
+
+#### Video Demo: [[URL HERE](https://youtu.be/UHP_piUqtEw)]
 
 #### Description:
 
@@ -66,7 +68,7 @@ Throughout the development of this project, several challenges were encountered 
 
 - **Database Design**: Designing the database schema to efficiently handle user data, product inventory, and order records was critical. Careful planning and normalization techniques were used to optimize performance.
 - **Authentication and Security**: Implementing secure authentication mechanisms, including password hashing and session management, to protect user data.
-- **User Interface**: Ensuring a user-friendly interface that allows easy navigation and interaction with the system.
+- **Adopting New Technologies**: This being my first project using Python and Flask, I faced several challenges despite utilizing many external resources. Learning and implementing these technologies effectively was a significant part of the project's learning curve.
 
 ## Tools and Resources
 
@@ -74,8 +76,16 @@ For this project, I heavily relied on various documentation and resources availa
 
 - **W3Schools**: For general HTML, CSS, JavaScript, and SQL reference.
 - **Stack Overflow**: For troubleshooting and solving errors.
-- **ChatGPT**: For assistance with complex parts and to enhance the Bootstrap design.
+- **ChatGPT**: For assistance with complex parts and to enhance the Bootstrap design, inserting dummy data and other things...
 - **CS50 Lectures**: For foundational knowledge and guidance on using Flask and other technologies.
+
+## Future Improvements
+
+The development of this project doesn't stop with its current state. For future enhancements:
+
+- **Payment Integration**: I plan to integrate a payment gateway to facilitate secure online transactions, enhancing the functionality and user experience of the system.
+- **Frontend Redesign**: To modernize the design and improve user interaction, I aim to redesign the frontend using React. This change will bring a fresh and more engaging interface to the system.
+- **Project Structure**: Currently, the system's backend is organized in a large, monolithic file. Going forward, I will work on modularizing the codebase to improve maintainability and scalability.
 
 ## How to Use the Project
 
@@ -236,7 +246,7 @@ For more in-depth information about the code structure and functionality, please
 
 The Pharmacy Management System project showcases the application of various web development technologies and concepts learned during the CS50 course. It provides a comprehensive solution for managing a pharmacy's operations, including user management, product inventory, order processing, and reporting. This project highlights the importance of careful planning, modular design, and attention to detail in software development.
 
-Feel free to check out the video demo for a detailed walkthrough of the project's features and functionality: [Video Demo URL HERE].
+Feel free to check out the video demo for a detailed walkthrough of the project's features and functionality: [[\[Video Demo URL HERE](https://youtu.be/UHP_piUqtEw)].
 
 ---
 
