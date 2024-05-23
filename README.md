@@ -152,6 +152,37 @@ To save time, you can use the following default users to explore the functionali
 
 **Note:** you also have defualt product to test on.
 
+### This is all routes url
+
+- [http://127.0.0.1:5000/](http://127.0.0.1:5000/)
+- [http://127.0.0.1:5000/register](http://127.0.0.1:5000/register)
+- [http://127.0.0.1:5000/login](http://127.0.0.1:5000/login)
+- [http://127.0.0.1:5000/logout](http://127.0.0.1:5000/logout)
+- [http://127.0.0.1:5000/dashboard](http://127.0.0.1:5000/dashboard)
+- [http://127.0.0.1:5000/admin](http://127.0.0.1:5000/admin)
+- [http://127.0.0.1:5000/pharmacist](http://127.0.0.1:5000/pharmacist)
+- [http://127.0.0.1:5000/customer](http://127.0.0.1:5000/customer)
+- [http://127.0.0.1:5000/reset_password](http://127.0.0.1:5000/reset_password)
+- [http://127.0.0.1:5000/edit_account](http://127.0.0.1:5000/edit_account)
+- [http://127.0.0.1:5000/manage_users](http://127.0.0.1:5000/manage_users)
+- [http://127.0.0.1:5000/edit_user/<int:user_id>](http://127.0.0.1:5000/edit_user/<int:user_id>)
+- [http://127.0.0.1:5000/delete_user/<int:user_id>](http://127.0.0.1:5000/delete_user/<int:user_id>)
+- [http://127.0.0.1:5000/products](http://127.0.0.1:5000/products)
+- [http://127.0.0.1:5000/products/add](http://127.0.0.1:5000/products/add)
+- [http://127.0.0.1:5000/products/edit/<int:product_id>](http://127.0.0.1:5000/products/edit/<int:product_id>)
+- [http://127.0.0.1:5000/products/delete/<int:product_id>](http://127.0.0.1:5000/products/delete/<int:product_id>)
+- [http://127.0.0.1:5000/add_to_cart/<int:product_id>](http://127.0.0.1:5000/add_to_cart/<int:product_id>)
+- [http://127.0.0.1:5000/remove_from_cart/<int:product_id>](http://127.0.0.1:5000/remove_from_cart/<int:product_id>)
+- [http://127.0.0.1:5000/view_cart](http://127.0.0.1:5000/view_cart)
+- [http://127.0.0.1:5000/confirm_order](http://127.0.0.1:5000/confirm_order)
+- [http://127.0.0.1:5000/view_order_history](http://127.0.0.1:5000/view_order_history)
+- [http://127.0.0.1:5000/manage_orders](http://127.0.0.1:5000/manage_orders)
+- [http://127.0.0.1:5000/update_order_status/<int:order_id>](http://127.0.0.1:5000/update_order_status/<int:order_id>)
+- [http://127.0.0.1:5000/sales_report](http://127.0.0.1:5000/sales_report)
+- [http://127.0.0.1:5000/inventory_report](http://127.0.0.1:5000/inventory_report)
+- [http://127.0.0.1:5000/submit_review/<int:product_id>](http://127.0.0.1:5000/submit_review/<int:product_id>)
+- [http://127.0.0.1:5000/view_reviews/<int:product_id>](http://127.0.0.1:5000/view_reviews/<int:product_id>)
+
 ## Code Details
 
 For more in-depth information about the code structure and functionality, please refer to the [Code Details Document](CODE_DETAILS.md).
