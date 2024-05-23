@@ -96,9 +96,12 @@ content %}
           name="terms"
           required
         />
-        <label class="form-check-label" for="terms"
-          >I agree to the terms and conditions</label
-        >
+        <label class="form-check-label" for="terms">
+          I agree to the
+          <a href="{{ url_for('terms_and_conditions') }}" target="_blank"
+            >terms and conditions</a
+          >
+        </label>
       </div>
       <div class="form-check">
         <input
@@ -108,9 +111,12 @@ content %}
           name="privacy"
           required
         />
-        <label class="form-check-label" for="privacy"
-          >I agree to the privacy policy</label
-        >
+        <label class="form-check-label" for="privacy">
+          I agree to the
+          <a href="{{ url_for('privacy_policy') }}" target="_blank"
+            >privacy policy</a
+          >
+        </label>
       </div>
       <button type="submit" class="btn btn-primary">Register</button>
     </form>
