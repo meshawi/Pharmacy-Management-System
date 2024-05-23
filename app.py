@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import mysql.connector
 from functools import wraps
 import hashlib
@@ -14,8 +14,11 @@ db_config = {
     'database': 'pharmacy_system'
 }
 
+# Utility function to connect to the database
+def get_db_connection():
+    return mysql.connector.connect(**db_config)
 
-# Define the role_required decorator
+# Decorators
 def role_required(role):
     def wrapper(fn):
         @wraps(fn)
@@ -26,28 +29,34 @@ def role_required(role):
         return decorated_view
     return wrapper
 
+# User Routes
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        date_of_birth = request.form['date_of_birth']
-        gender = request.form['gender']
-        phone_number = request.form['phone_number']
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        terms = request.form.get('terms')
-        privacy = request.form.get('privacy')
+        # Extract form data
+        form_data = request.form
+        first_name = form_data['first_name']
+        last_name = form_data['last_name']
+        date_of_birth = form_data['date_of_birth']
+        gender = form_data['gender']
+        phone_number = form_data['phone_number']
+        username = form_data['username']
+        email = form_data['email']
+        password = form_data['password']
+        terms = form_data.get('terms')
+        privacy = form_data.get('privacy')
 
+        # Check terms and privacy
         if not terms or not privacy:
             flash('You must agree to the terms and conditions and privacy policy.', 'danger')
             return render_template('register.html')
 
+        # Hash the password
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        role = 'Customer'  # Default role, you can change this manually later in the database
+        role = 'Customer'  # Default role
 
-        conn = mysql.connector.connect(**db_config)
+        # Database operations
+        conn = get_db_connection()
         cursor = conn.cursor()
         try:
             cursor.execute("""
@@ -65,7 +74,6 @@ def register():
             conn.close()
     return render_template('register.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -73,7 +81,7 @@ def login():
         password = request.form['password']
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
-        conn = mysql.connector.connect(**db_config)
+        conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, hashed_password))
@@ -97,34 +105,21 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
-@app.route('/')
-def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    role = session.get('role', 'Guest')
-    if role == 'Admin':
-        return redirect(url_for('admin_dashboard'))
-    elif role == 'Pharmacist':
-        return redirect(url_for('pharmacist_dashboard'))
-    elif role == 'Customer':
-        return redirect(url_for('customer_dashboard'))
-    else:
-        return render_template('apology.html', message="Invalid Role")
-
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form.get('email')
-        phone_number = request.form.get('phone_number')
-        new_password = request.form['new_password']
+        form_data = request.form
+        username = form_data['username']
+        email = form_data.get('email')
+        phone_number = form_data.get('phone_number')
+        new_password = form_data['new_password']
         hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
 
         if not (email or phone_number):
             flash('Please provide either email or phone number.', 'danger')
             return render_template('reset_password.html')
 
-        conn = mysql.connector.connect(**db_config)
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         try:
@@ -154,18 +149,19 @@ def reset_password():
 @app.route('/edit_account', methods=['GET', 'POST'])
 def edit_account():
     user_id = session['user_id']
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     if request.method == 'POST':
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        date_of_birth = request.form['date_of_birth']
-        gender = request.form['gender']
-        phone_number = request.form['phone_number']
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
+        form_data = request.form
+        first_name = form_data['first_name']
+        last_name = form_data['last_name']
+        date_of_birth = form_data['date_of_birth']
+        gender = form_data['gender']
+        phone_number = form_data['phone_number']
+        username = form_data['username']
+        email = form_data['email']
+        password = form_data['password']
         
         if password:
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
@@ -192,6 +188,20 @@ def edit_account():
     
     return render_template('edit_account.html', user=user)
 
+# Dashboard Routes
+@app.route('/')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    role = session.get('role', 'Guest')
+    if role == 'Admin':
+        return redirect(url_for('admin_dashboard'))
+    elif role == 'Pharmacist':
+        return redirect(url_for('pharmacist_dashboard'))
+    elif role == 'Customer':
+        return redirect(url_for('customer_dashboard'))
+    else:
+        return render_template('apology.html', message="Invalid Role")
 
 @app.route('/admin')
 @role_required('Admin')
@@ -208,13 +218,11 @@ def pharmacist_dashboard():
 def customer_dashboard():
     return render_template('customer_dashboard.html')
 
-# Import MySQL connector
-import mysql.connector
-
+# User Management Routes
 @app.route('/manage_users')
 @role_required('Admin')
 def manage_users():
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     cursor.execute("""
@@ -231,18 +239,19 @@ def manage_users():
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @role_required('Admin')
 def edit_user(user_id):
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
     if request.method == 'POST':
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        date_of_birth = request.form['date_of_birth']
-        gender = request.form['gender']
-        phone_number = request.form['phone_number']
-        username = request.form['username']
-        email = request.form['email']
-        role = request.form['role']
+        form_data = request.form
+        first_name = form_data['first_name']
+        last_name = form_data['last_name']
+        date_of_birth = form_data['date_of_birth']
+        gender = form_data['gender']
+        phone_number = form_data['phone_number']
+        username = form_data['username']
+        email = form_data['email']
+        role = form_data['role']
         
         cursor.execute("""
             UPDATE users 
@@ -261,11 +270,10 @@ def edit_user(user_id):
     
     return render_template('edit_user.html', user=user)
 
-
 @app.route('/delete_user/<int:user_id>', methods=['POST'])
 @role_required('Admin')
 def delete_user(user_id):
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
@@ -282,13 +290,10 @@ def delete_user(user_id):
     
     return redirect(url_for('manage_users'))
 
-
-
-# Add the new routes for product management
-
+# Product Management Routes
 @app.route('/products')
 def view_products():
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     cursor.execute("SELECT * FROM products")
@@ -312,19 +317,18 @@ def view_products():
     role = session.get('role')
     return render_template('products.html', products=products, role=role, categories=categories)
 
-
-# Add and Edit Product Routes
 @app.route('/products/add', methods=['GET', 'POST'])
 @role_required('Admin')
 def add_product():
     if request.method == 'POST':
-        name = request.form['name']
-        description = request.form['description']
-        price = request.form['price']
-        stock_quantity = request.form['stock_quantity']
-        category = request.form['category']
+        form_data = request.form
+        name = form_data['name']
+        description = form_data['description']
+        price = form_data['price']
+        stock_quantity = form_data['stock_quantity']
+        category = form_data['category']
         
-        conn = mysql.connector.connect(**db_config)
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO products (name, description, price, stock_quantity, category) VALUES (%s, %s, %s, %s, %s)",
                        (name, description, price, stock_quantity, category))
@@ -339,15 +343,16 @@ def add_product():
 @app.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
 @role_required('Admin')
 def edit_product(product_id):
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     if request.method == 'POST':
-        name = request.form['name']
-        description = request.form['description']
-        price = request.form['price']
-        stock_quantity = request.form['stock_quantity']
-        category = request.form['category']
+        form_data = request.form
+        name = form_data['name']
+        description = form_data['description']
+        price = form_data['price']
+        stock_quantity = form_data['stock_quantity']
+        category = form_data['category']
         
         cursor.execute("UPDATE products SET name=%s, description=%s, price=%s, stock_quantity=%s, category=%s WHERE id=%s",
                        (name, description, price, stock_quantity, category, product_id))
@@ -366,11 +371,10 @@ def edit_product(product_id):
 @app.route('/products/delete/<int:product_id>', methods=['POST'])
 @role_required('Admin')
 def delete_product(product_id):
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        # Check if the product is referenced in OrderItems
         cursor.execute("SELECT COUNT(*) FROM OrderItems WHERE product_id = %s", (product_id,))
         count = cursor.fetchone()[0]
         
@@ -390,11 +394,11 @@ def delete_product(product_id):
     
     return redirect(url_for('view_products'))
 
-
+# Cart and Order Routes
 @app.route('/add_to_cart/<int:product_id>', methods=['POST'])
 @role_required('Customer')
 def add_to_cart(product_id):
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     try:
@@ -430,15 +434,13 @@ def remove_from_cart(product_id):
         flash('Cart is empty.', 'warning')
     return redirect(url_for('view_cart'))
 
-
-# View Cart and Order History Routes
 @app.route('/view_cart')
 @role_required('Customer')
 def view_cart():
     if 'cart' not in session:
         session['cart'] = []
 
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     products = []
     total_amount = 0
@@ -458,7 +460,7 @@ def confirm_order():
         flash('Your cart is empty.', 'warning')
         return redirect(url_for('view_cart'))
 
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     total_amount = 0
@@ -468,15 +470,11 @@ def confirm_order():
         total_amount += price
 
     try:
-        # Start transaction
         cursor.execute("START TRANSACTION")
 
-        # Insert order into Orders table
-        cursor.execute("INSERT INTO Orders (customer_id, total_amount) VALUES (%s, %s)",
-                       (session['user_id'], total_amount))
+        cursor.execute("INSERT INTO Orders (customer_id, total_amount) VALUES (%s, %s)", (session['user_id'], total_amount))
         order_id = cursor.lastrowid
 
-        # Insert items into OrderItems table
         for product_id in session['cart']:
             cursor.execute("SELECT price FROM products WHERE id = %s", (product_id,))
             price = cursor.fetchone()[0]
@@ -484,7 +482,6 @@ def confirm_order():
                            (order_id, product_id, 1, price))
             cursor.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = %s", (product_id,))
 
-        # Commit transaction
         cursor.execute("COMMIT")
 
         session['cart'] = []  # Clear cart after successful order
@@ -499,12 +496,10 @@ def confirm_order():
         cursor.close()
         conn.close()
 
-
-
 @app.route('/view_order_history')
 @role_required('Customer')
 def view_order_history():
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     try:
@@ -533,11 +528,11 @@ def view_order_history():
         cursor.close()
         conn.close()
 
-
+# Admin Order Management Routes
 @app.route('/manage_orders')
 @role_required('Admin')
 def manage_orders():
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     try:
@@ -553,12 +548,9 @@ def manage_orders():
             """, (order['id'],))
             items = cursor.fetchall()
 
-            # Convert Decimal to string
             for item in items:
                 item['price'] = str(item['price'])
             order['items'] = items
-
-            # Convert Decimal to string
             order['total_amount'] = str(order['total_amount'])
 
         return render_template('manage_orders.html', orders=orders)
@@ -574,7 +566,7 @@ def manage_orders():
 def update_order_status(order_id):
     new_status = request.form['status']
     
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
@@ -591,12 +583,11 @@ def update_order_status(order_id):
     
     return redirect(url_for('manage_orders'))
 
-from flask import jsonify
-
+# Reporting Routes
 @app.route('/sales_report')
 @role_required('Admin')
 def sales_report():
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     try:
@@ -621,7 +612,7 @@ def sales_report():
 @app.route('/inventory_report')
 @role_required('Admin')
 def inventory_report():
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     try:
@@ -647,6 +638,7 @@ def inventory_report():
         cursor.close()
         conn.close()
 
+# Review Routes
 @app.route('/submit_review/<int:product_id>', methods=['GET', 'POST'])
 @role_required('Customer')
 def submit_review(product_id):
@@ -656,7 +648,7 @@ def submit_review(product_id):
         rating = request.form['rating']
         review = request.form['review']
         
-        conn = mysql.connector.connect(**db_config)
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         try:
@@ -676,10 +668,9 @@ def submit_review(product_id):
     
     return render_template('submit_review.html', product_id=product_id)
 
-
 @app.route('/view_reviews/<int:product_id>')
 def view_reviews(product_id):
-    conn = mysql.connector.connect(**db_config)
+    conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     cursor.execute("""
@@ -699,6 +690,7 @@ def view_reviews(product_id):
     
     return render_template('view_reviews.html', reviews=reviews, product=product)
 
+# Miscellaneous Routes
 @app.route('/contact_us')
 def contact_us():
     return render_template('contact_us.html')
@@ -715,5 +707,6 @@ def terms_and_conditions():
 def privacy_policy():
     return render_template('privacy_policy.html')
 
+# Main
 if __name__ == '__main__':
     app.run(debug=True)
