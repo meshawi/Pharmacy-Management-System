@@ -84,6 +84,51 @@ For this project, I heavily relied on various documentation and resources availa
 1. Ensure all project files are in the same structure as outlined in the repository.
 2. Create the database and tables, and populate them with initial dummy data using the `database.sql` file.
 
+### Directory Structure
+
+```powershell
+# This structure includes all necessary files and directories for your pharmacy system project.
+pharmacy_system/
+│
+├── static/
+│   ├── anim.json
+│   └── styles.css
+│
+├── templates/
+│   ├── about_us.html
+│   ├── add_product.html
+│   ├── admin_dashboard.html
+│   ├── apology.html
+│   ├── base.html
+│   ├── contact_us.html
+│   ├── customer_dashboard.html
+│   ├── dashboard.html
+│   ├── edit_account.html
+│   ├── edit_product.html
+│   ├── edit_user.html
+│   ├── inventory_report.html
+│   ├── login.html
+│   ├── manage_orders.html
+│   ├── manage_users.html
+│   ├── pharmacist_dashboard.html
+│   ├── privacy_policy.html
+│   ├── products.html
+│   ├── register.html
+│   ├── reset_password.html
+│   ├── sales_report.html
+│   ├── submit_review.html
+│   ├── terms_and_conditions.html
+│   ├── view_cart.html
+│   ├── view_order_history.html
+│   └── view_reviews.html
+│
+├── .gitignore
+├── app.py
+├── CODE_DETAILS.md
+├── database.sql
+└── README.md
+```
+
 ### Database Configuration
 
 Update the database connection configuration in the `app.py` file:
