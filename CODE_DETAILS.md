@@ -116,13 +116,13 @@ def register():
     if request.method == 'POST':
         # Extract form data
         form_data = request.form
-        first_name = form_data['first_name']
-        last_name = form_data['last_name']
+        first_name = form_data['first_name'].strip()
+        last_name = form_data['last_name'].strip()
         date_of_birth = form_data['date_of_birth']
         gender = form_data['gender']
-        phone_number = form_data['phone_number']
-        username = form_data['username']
-        email = form_data['email']
+        phone_number = form_data['phone_number'].strip()
+        username = form_data['username'].strip()
+        email = form_data['email'].strip()
         password = form_data['password']
         terms = form_data.get('terms')
         privacy = form_data.get('privacy')
@@ -130,6 +130,21 @@ def register():
         # Check terms and privacy
         if not terms or not privacy:
             flash('You must agree to the terms and conditions and privacy policy.', 'danger')
+            return render_template('register.html')
+
+        # Validate that all fields are filled
+        if not (first_name and last_name and date_of_birth and gender and phone_number and username and email and password):
+            flash('Please fill in all fields.', 'danger')
+            return render_template('register.html')
+
+        # Validate email format
+        if "@" not in email or "." not in email:
+            flash('Invalid email format.', 'danger')
+            return render_template('register.html')
+
+        # Check password strength (example: at least 8 characters)
+        if len(password) < 8:
+            flash('Password must be at least 8 characters long.', 'danger')
             return render_template('register.html')
 
         # Hash the password
@@ -140,6 +155,13 @@ def register():
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
+            # Check if username or email already exists
+            cursor.execute("SELECT * FROM users WHERE username = %s OR email = %s", (username, email))
+            if cursor.fetchone():
+                flash('Username or email already in use. Please choose another one.', 'danger')
+                return render_template('register.html')
+
+            # Insert new user
             cursor.execute("""
                 INSERT INTO users (first_name, last_name, date_of_birth, gender, phone_number, username, email, password, role)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -149,7 +171,7 @@ def register():
             return redirect(url_for('login'))
         except mysql.connector.Error as err:
             print(err)
-            return render_template('apology.html', message="Registration failed. Username or email might already be taken.")
+            flash('Registration failed due to a system error. Please try again later.', 'danger')
         finally:
             cursor.close()
             conn.close()
@@ -161,7 +183,7 @@ def register():
 - Terms and Privacy Check: Ensures that the user agrees to the terms and - conditions and privacy policy.
 - Password Hashing: Uses SHA-256 to hash the user's password for secure storage.
 - Database Insertion: Inserts the new user's data into the users table in the database.
-- Error Handling: Catches and handles any database errors during registration.
+- Error Handling: Catches and handles any database errors during registration and Valedation.
 
 #### Login Route
 
