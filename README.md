@@ -77,6 +77,81 @@ For this project, I heavily relied on various documentation and resources availa
 - **ChatGPT**: For assistance with complex parts and to enhance the Bootstrap design.
 - **CS50 Lectures**: For foundational knowledge and guidance on using Flask and other technologies.
 
+## How to Use the Project
+
+### Prerequisites
+
+1. Ensure all project files are in the same structure as outlined in the repository.
+2. Create the database and tables, and populate them with initial dummy data using the `database.sql` file.
+
+### Database Configuration
+
+Update the database connection configuration in the `app.py` file:
+
+```python
+# Database configuration in ther app.py
+db_config = {
+    'user': 'your_db_user',
+    'password': 'your_db_password',
+    'host': 'your_db_host',
+    'database': 'your_db_name'
+}
+```
+
+### Running the Project
+
+```powershell
+# To start the project, run the following command in your terminal:
+python app.py
+```
+
+This command starts the application by running the Python script that sets up the database and the server
+
+### Test Now
+
+Then, open your web browser and navigate to the following URL to test the application:
+
+- **http://127.0.0.1:5000/login**
+
+### Default Users
+
+To save time, you can use the following default users to explore the functionality of the website:
+
+#### Admin
+
+- **Username:** Admin
+- **Email:** testingAdmin@gmail.com
+- **Password:** testingAdminPass1234
+- **First Name:** Admin
+- **Last Name:** ADMN
+- **Date of Birth:** 05/23/2004
+- **Gender:** Male
+- **Phone Number:** 05555555555
+
+#### Pharmacist
+
+- **Username:** Pharmacist
+- **Email:** testingpharmacist@gmail.com
+- **Password:** testingpharmacistPass1234
+- **First Name:** Pharm
+- **Last Name:** Pharmacist
+- **Date of Birth:** 05/23/2005
+- **Gender:** Male
+- **Phone Number:** 05666666666
+
+#### Customer
+
+- **Username:** Customer
+- **Email:** testingcustomer@gmail.com
+- **Password:** testinCustomerPass1234
+- **First Name:** Customer
+- **Last Name:** CSTMR
+- **Date of Birth:** 05/23/2006
+- **Gender:** Male
+- **Phone Number:** 05777777777
+
+**Note:** you also have defualt product to test on.
+
 ## Code Details
 
 For more in-depth information about the code structure and functionality, please refer to the [Code Details Document](CODE_DETAILS.md).

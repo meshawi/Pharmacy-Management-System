@@ -11,7 +11,7 @@ db_config = {
     'user': 'root',
     'password': '',
     'host': 'localhost',
-    'database': 'pharmacy_system'
+    'database': 'tmp2'
 }
 
 # Utility function to connect to the database
