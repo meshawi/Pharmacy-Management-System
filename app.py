@@ -19,15 +19,17 @@ def get_db_connection():
     return mysql.connector.connect(**db_config)
 
 # Decorators
-def role_required(role):
-    def wrapper(fn):
-        @wraps(fn)
-        def decorated_view(*args, **kwargs):
-            if 'user_id' not in session or session.get('role') != role:
-                return render_template('apology.html', message="You do not have permission to access this page.")
-            return fn(*args, **kwargs)
-        return decorated_view
-    return wrapper
+def role_required(*roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'role' not in session or session['role'] not in roles:
+                flash('You do not have permission to access this page.', 'danger')
+                return redirect(url_for('index'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 
 # User Routes
 @app.route('/register', methods=['GET', 'POST'])
@@ -553,7 +555,7 @@ def view_order_history():
 
 # Admin Order Management Routes
 @app.route('/manage_orders')
-@role_required('Admin')
+@role_required('Admin', 'Pharmacist')
 def manage_orders():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
