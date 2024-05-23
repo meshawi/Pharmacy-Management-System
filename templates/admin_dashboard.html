@@ -1,41 +1,86 @@
 {% extends "base.html" %} {% block title %}Admin Dashboard{% endblock %} {%
 block content %}
-<div class="container text-center mt-5">
-  <h1>Welcome to the Admin Dashboard</h1>
-  <p>
-    <a href="{{ url_for('edit_account') }}" class="btn btn-primary"
-      >Edit Account</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('manage_users') }}" class="btn btn-primary"
-      >Manage Users</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('manage_orders') }}" class="btn btn-primary"
-      >Manage Orders</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('sales_report') }}" class="btn btn-primary"
-      >Sales Report</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('view_products') }}" class="btn btn-primary"
-      >View Products</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('add_product') }}" class="btn btn-primary"
-      >Add Product</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('inventory_report') }}" class="btn btn-primary"
-      >Inventory Report</a
-    >
-  </p>
+<div class="container mt-5">
+  <div class="text-center mb-4">
+    <h1>Welcome to the Admin Dashboard</h1>
+    <p class="lead">Manage the entire pharmacy system from here.</p>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-user-cog fa-3x mb-3"></i>
+          <h5 class="card-title">Account Management</h5>
+          <p class="card-text">Edit your account details and settings.</p>
+          <a href="{{ url_for('edit_account') }}" class="btn btn-primary"
+            >Edit Account</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-users fa-3x mb-3"></i>
+          <h5 class="card-title">User Management</h5>
+          <p class="card-text">Manage users in the system.</p>
+          <a href="{{ url_for('manage_users') }}" class="btn btn-primary"
+            >Manage Users</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-receipt fa-3x mb-3"></i>
+          <h5 class="card-title">Order Management</h5>
+          <p class="card-text">View and manage orders.</p>
+          <a href="{{ url_for('manage_orders') }}" class="btn btn-primary"
+            >Manage Orders</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-chart-line fa-3x mb-3"></i>
+          <h5 class="card-title">Sales Report</h5>
+          <p class="card-text">View sales data and reports.</p>
+          <a href="{{ url_for('sales_report') }}" class="btn btn-primary"
+            >Sales Report</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-boxes fa-3x mb-3"></i>
+          <h5 class="card-title">Product Management</h5>
+          <p class="card-text">View and manage products.</p>
+          <a href="{{ url_for('view_products') }}" class="btn btn-primary"
+            >View Products</a
+          >
+          <a href="{{ url_for('add_product') }}" class="btn btn-secondary mt-2"
+            >Add Product</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-warehouse fa-3x mb-3"></i>
+          <h5 class="card-title">Inventory Report</h5>
+          <p class="card-text">View inventory status and reports.</p>
+          <a href="{{ url_for('inventory_report') }}" class="btn btn-primary"
+            >Inventory Report</a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

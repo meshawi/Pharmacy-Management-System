@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block title %}Contact Us{% endblock %} {% block
+content %}
+<div class="container mt-5">
+  <div class="text-center mb-4">
+    <h1>Contact Us</h1>
+    <p class="lead">
+      Feel free to reach out to me through the following channels:
+    </p>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <div id="lottie-animation" style="width: 100%; height: 300px"></div>
+      <h2 class="mt-4">Contact Information</h2>
+      <p>
+        <strong>Portfolio:</strong>
+        <a href="https://aleshawi.me/" target="_blank">https://aleshawi.me/</a>
+      </p>
+      <p>
+        <strong>Instagram:</strong>
+        <a href="https://www.instagram.com/i.m3r8" target="_blank">i.m3r8</a>
+      </p>
+      <p><strong>Discord:</strong> m3r8</p>
+      <p><strong>Other platforms:</strong> Coming soon</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.8/lottie.min.js"></script>
+<script>
+  var animation = lottie.loadAnimation({
+    container: document.getElementById("lottie-animation"),
+    renderer: "svg",
+    loop: true,
+    autoplay: true,
+    path: '{{ url_for("static", filename="anim.json") }}',
+  });
+</script>
+{% endblock %}

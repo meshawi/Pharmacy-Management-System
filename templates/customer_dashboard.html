@@ -1,24 +1,59 @@
 {% extends "base.html" %} {% block title %}Customer Dashboard{% endblock %} {%
 block content %}
-<div class="container text-center mt-5">
-  <h1>Welcome to the Customer Dashboard</h1>
-  <p>
-    <a href="{{ url_for('edit_account') }}" class="btn btn-primary"
-      >Edit Account</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('view_products') }}" class="btn btn-primary"
-      >View Products</a
-    >
-  </p>
-  <p>
-    <a href="{{ url_for('view_cart') }}" class="btn btn-primary">View Cart</a>
-  </p>
-  <p>
-    <a href="{{ url_for('view_order_history') }}" class="btn btn-primary"
-      >Order History</a
-    >
-  </p>
+<div class="container mt-5">
+  <div class="text-center mb-4">
+    <h1>Welcome to the Customer Dashboard</h1>
+    <p class="lead">Manage your account and orders from here.</p>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-user-edit fa-3x mb-3"></i>
+          <h5 class="card-title">Edit Account</h5>
+          <p class="card-text">Update your account details.</p>
+          <a href="{{ url_for('edit_account') }}" class="btn btn-primary"
+            >Edit Account</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-box-open fa-3x mb-3"></i>
+          <h5 class="card-title">View Products</h5>
+          <p class="card-text">Browse available products.</p>
+          <a href="{{ url_for('view_products') }}" class="btn btn-primary"
+            >View Products</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+          <h5 class="card-title">View Cart</h5>
+          <p class="card-text">See items in your cart.</p>
+          <a href="{{ url_for('view_cart') }}" class="btn btn-primary"
+            >View Cart</a
+          >
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card h-100">
+        <div class="card-body text-center">
+          <i class="fas fa-history fa-3x mb-3"></i>
+          <h5 class="card-title">Order History</h5>
+          <p class="card-text">View your past orders.</p>
+          <a href="{{ url_for('view_order_history') }}" class="btn btn-primary"
+            >Order History</a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

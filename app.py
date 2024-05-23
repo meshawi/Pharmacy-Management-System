@@ -699,6 +699,13 @@ def view_reviews(product_id):
     
     return render_template('view_reviews.html', reviews=reviews, product=product)
 
+@app.route('/contact_us')
+def contact_us():
+    return render_template('contact_us.html')
+
+@app.route('/about_us')
+def about_us():
+    return render_template('about_us.html')
 
 
 if __name__ == '__main__':
