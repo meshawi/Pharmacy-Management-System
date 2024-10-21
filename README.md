@@ -2,7 +2,7 @@
 
 ![CS50 Project](/thum.png "CS50 Final Project Image")
 
-#### Video Demo: [[URL HERE](https://youtu.be/UHP_piUqtEw)]
+#### Video Demo: [[URL HERE]()]
 
 #### Description:
 
@@ -245,9 +245,5 @@ For more in-depth information about the code structure and functionality, please
 ## Conclusion
 
 The Pharmacy Management System project showcases the application of various web development technologies and concepts learned during the CS50 course. It provides a comprehensive solution for managing a pharmacy's operations, including user management, product inventory, order processing, and reporting. This project highlights the importance of careful planning, modular design, and attention to detail in software development.
-
-Feel free to check out the video demo for a detailed walkthrough of the project's features and functionality: [[\[Video Demo URL HERE](https://youtu.be/UHP_piUqtEw)].
-
----
 
 Thank you for reviewing my final project. **This was CS50!**
